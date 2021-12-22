@@ -1,28 +1,51 @@
-import tkinter as tk
-from tkinter import filedialog, Text
-import os 
+import speech_recognition as sr
+import pyttsx3
+import pywhatkit
+import datetime
+import wikipedia
 
-root = tk.Tk()
+listener = sr.Recognizer()
+engine = pyttsx3.init()
+voices = engine.getProperty('voices')
+engine.setProperty('voice', voices[1].id)
+
+def talk(text):
+    engine.say(text)
+    engine.runAndWait()
 
 
-def addApp():
-    filename = filedialog.askopenfilename(initialdir="/", title="Select File", 
-                                          filetypes=(("executables", "*.exe"), ("all files", "*.*")))
+def take_command():
+
+    try:
+        with sr.Microphone() as source:
+            print('Awaiting your Inquiry...')
+            voice = listener.listen(source)
+            command = listener.recognize_google(voice)
+            command = command.lower()
+            if 'eden' in command:
+                command = command.replace('eden', '')
+                print(command)
+    except:
+        pass
+    return command
 
 
-canvas = tk.Canvas(root, height=700, width=700, bg="#253D42")
-canvas.pack()
+def run_eden():
+    command = take_command()
+    print(command)
+    if 'play' in command:
+        song = command.replace('play', '')
+        talk('will do, playing ' + song)
+        pywhatkit.playonyt(song)
+    elif 'time' in command:
+        time = datetime.datetime.now().strftime('%I:%M %p')
+        print(time)
+        talk('The time is currently ' + time)
+    elif 'search' in command:
+        person = command.replace('search', '')
+        info = wikipedia.summary(person, 2)
+    print(info)
+    talk (info)
 
-frame = tk.Frame(root, bg="white")
-frame.place(relwidth=0.8, relheight=0.8, relx=0.1, rely=0.1)
-
-openFile = tk.Button(root, text="Open File", padx=10, pady=5, 
-                     fg="white", bg="#263D42" command=addApp)
-
-openFile.pack()
-
-runApps = tk.Button(root, text="Run Apps", padx=10, pady=5, 
-                     fg="white", bg="#263D42")
-runApps.pack()
-
-root.mainloop()
+while True:
+    run_eden()
